@@ -13,6 +13,8 @@ A free, lightweight Markdown viewer for macOS. Double-click any `.md` file and r
 - **Dark Mode** — automatically follows your macOS appearance setting
 - **Recent Files** — quickly reopen previous documents from File > Open Recent
 - **External Links** — links open in your default browser
+- **File Path Bar** — full file path displayed below the toolbar for easy identification across multiple windows
+- **Help Documentation** — built-in Apple Help Book accessible from the Help menu
 
 ## Requirements
 
@@ -23,7 +25,7 @@ A free, lightweight Markdown viewer for macOS. Double-click any `.md` file and r
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/MarkDownReader.git
+   git clone https://github.com/ejuden/MarkDownReader.git
    ```
 2. Open `MarkDownReader.xcodeproj` in Xcode
 3. Select your development team under Signing & Capabilities (or choose "Sign to Run Locally")
@@ -73,7 +75,6 @@ Contributions are welcome! Some ideas for improvement:
 - Syntax highlighting for code blocks
 - File watching (auto-reload on external changes)
 - Custom themes / CSS
-- App icon design
 - Mathematical notation (LaTeX / KaTeX)
 - Mermaid diagram support
 - Footnotes
