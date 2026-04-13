@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --bg: #ffffff;
+    --fg: #1d1d1f;
+    --link: #0066cc;
+    --code-bg: #f5f5f7;
+    --code-fg: #d63384;
+    --block-code-bg: #f5f5f7;
+    --border: #d2d2d7;
+    --blockquote-border: #86868b;
+    --blockquote-fg: #6e6e73;
+    --table-stripe: #f5f5f7;
+    --hr: #d2d2d7;
+    --mark-bg: #ffdd57;
+    --mark-current: #ff9500;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #1d1d1f;
+        --fg: #f5f5f7;
+        --link: #64b5f6;
+        --code-bg: #2c2c2e;
+        --code-fg: #ff6b8a;
+        --block-code-bg: #2c2c2e;
+        --border: #48484a;
+        --blockquote-border: #636366;
+        --blockquote-fg: #98989d;
+        --table-stripe: #2c2c2e;
+        --hr: #48484a;
+        --mark-bg: #665500;
+        --mark-current: #996600;
+    }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--fg);
+    background: var(--bg);
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 24px 40px 60px;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+}
+h1:first-child, h2:first-child, h3:first-child { margin-top: 0; }
+
+h1 { font-size: 2em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid var(--border); padding-bottom: 0.25em; }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1em; }
+h5 { font-size: 0.875em; }
+h6 { font-size: 0.85em; color: var(--blockquote-fg); }
+
+p { margin: 0 0 1em; }
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code {
+    font-family: "SF Mono", Menlo, Monaco, "Cascadia Code", monospace;
+    font-size: 0.875em;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+}
+
+pre {
+    background: var(--block-code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 0 0 1em;
+    line-height: 1.5;
+}
+
+pre code {
+    background: none;
+    color: var(--fg);
+    padding: 0;
+    font-size: 0.85em;
+    border-radius: 0;
+}
+
+blockquote {
+    border-left: 4px solid var(--blockquote-border);
+    margin: 0 0 1em;
+    padding: 0.5em 1em;
+    color: var(--blockquote-fg);
+}
+blockquote > p:first-child { margin-top: 0; }
+blockquote > p:last-child { margin-bottom: 0; }
+blockquote blockquote { margin-top: 0.5em; }
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0 0 1em;
+    font-size: 0.95em;
+}
+th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+}
+th { background: var(--code-bg); font-weight: 600; }
+tr:nth-child(even) td { background: var(--table-stripe); }
+
+img { max-width: 100%; height: auto; border-radius: 6px; margin: 0.5em 0; }
+hr { border: none; border-top: 2px solid var(--hr); margin: 2em 0; }
+
+ul, ol { padding-left: 2em; margin: 0 0 1em; }
+li { margin: 0.2em 0; }
+li > ul, li > ol { margin-bottom: 0; }
+
+li.task-item {
+    list-style: none;
+    margin-left: -1.5em;
+}
+li.task-item input[type="checkbox"] {
+    margin-right: 0.5em;
+    pointer-events: none;
+}
+
+.search-match { background: var(--mark-bg); color: var(--fg); border-radius: 2px; padding: 1px 0; }
+.search-match.current { background: var(--mark-current); color: #fff; }
+
+@media print {
+    body { max-width: none; padding: 0; color: #000; background: #fff; }
+    pre { white-space: pre-wrap; word-wrap: break-word; border-color: #ccc; }
+    a { color: #000; text-decoration: underline; }
+    h1, h2 { border-color: #ccc; }
+    .search-match { background: none; }
+}
+</style>
+</head>
+<body>
+<div id="content"></div>
+
+<script>
+// ===================== Markdown Parser =====================
+
+function parseMarkdown(src) {
+    src = src.replace(/\r\n?/g, '\n');
+    var tokens = parseBlocks(src.split('\n'), 0);
+    return renderTokens(tokens);
+}
+
+function parseBlocks(lines, start) {
+    var tokens = [];
+    var i = start;
+
+    while (i < lines.length) {
+        var line = lines[i];
+
+        // Empty line
+        if (/^\s*$/.test(line)) { i++; continue; }
+
+        // Fenced code block
+        var fenceMatch = line.match(/^(`{3,}|~{3,})\s*([\w.-]*)/);
+        if (fenceMatch) {
+            var fence = fenceMatch[1].charAt(0);
+            var fenceLen = fenceMatch[1].length;
+            var lang = fenceMatch[2];
+            var codeLines = [];
+            i++;
+            while (i < lines.length) {
+                var cl = lines[i];
+                if (cl.match(new RegExp('^' + fence + '{' + fenceLen + ',}\\s*$'))) { i++; break; }
+                codeLines.push(cl);
+                i++;
+            }
+            tokens.push({type: 'code', lang: lang, text: codeLines.join('\n')});
+            continue;
+        }
+
+        // Indented code block (4 spaces or 1 tab)
+        if (/^(    |\t)/.test(line) && tokens.length > 0 && tokens[tokens.length-1].type !== 'list') {
+            var codeLines2 = [];
+            while (i < lines.length && (/^(    |\t)/.test(lines[i]) || /^\s*$/.test(lines[i]))) {
+                codeLines2.push(lines[i].replace(/^    /, '').replace(/^\t/, ''));
+                i++;
+            }
+            // Trim trailing empty lines
+            while (codeLines2.length && /^\s*$/.test(codeLines2[codeLines2.length-1])) codeLines2.pop();
+            tokens.push({type: 'code', lang: '', text: codeLines2.join('\n')});
+            continue;
+        }
+
+        // ATX Heading
+        var headMatch = line.match(/^(#{1,6})\s+(.*?)(?:\s+#+)?$/);
+        if (headMatch) {
+            tokens.push({type: 'heading', level: headMatch[1].length, text: headMatch[2]});
+            i++;
+            continue;
+        }
+
+        // Horizontal rule
+        if (/^(\*[\s*]*\*[\s*]*\*[\s*]*$|-[\s-]*-[\s-]*-[\s-]*$|_[\s_]*_[\s_]*_[\s_]*$)/.test(line)) {
+            tokens.push({type: 'hr'});
+            i++;
+            continue;
+        }
+
+        // Table (GFM)
+        if (/^\|/.test(line) && i + 1 < lines.length && /^\|[\s:]*-[-\s:|]*\|/.test(lines[i+1])) {
+            var headers = splitTableRow(line);
+            var aligns = parseAlignRow(lines[i+1]);
+            var rows = [];
+            i += 2;
+            while (i < lines.length && /^\|/.test(lines[i]) && !/^\|[\s:]*-[-\s:|]*\|/.test(lines[i])) {
+                rows.push(splitTableRow(lines[i]));
+                i++;
+            }
+            tokens.push({type: 'table', headers: headers, aligns: aligns, rows: rows});
+            continue;
+        }
+
+        // Blockquote
+        if (/^>\s?/.test(line)) {
+            var bqLines = [];
+            while (i < lines.length && (/^>\s?/.test(lines[i]) || (/^\S/.test(lines[i]) && !/^(#{1,6}\s|```|~~~)/.test(lines[i]) && bqLines.length > 0))) {
+                bqLines.push(lines[i].replace(/^>\s?/, ''));
+                i++;
+            }
+            var inner = parseBlocks(bqLines, 0);
+            tokens.push({type: 'blockquote', children: inner});
+            continue;
+        }
+
+        // List
+        var listMatch = line.match(/^(\s*)([-*+]|\d+[.)]) /);
+        if (listMatch) {
+            var result = parseList(lines, i);
+            tokens.push(result.token);
+            i = result.end;
+            continue;
+        }
+
+        // HTML block (starts with < followed by a known block tag)
+        if (/^<(div|section|article|aside|header|footer|nav|main|details|summary|figure|figcaption|p|ul|ol|li|table|tr|td|th|thead|tbody|tfoot|form|fieldset|legend|pre|blockquote|dl|dt|dd|hr|br|!--)[\s>\/]/i.test(line)) {
+            var htmlLines = [line];
+            i++;
+            while (i < lines.length && !/^\s*$/.test(lines[i])) {
+                htmlLines.push(lines[i]);
+                i++;
+            }
+            tokens.push({type: 'html', text: htmlLines.join('\n')});
+            continue;
+        }
+
+        // Paragraph
+        var paraLines = [];
+        while (i < lines.length && /\S/.test(lines[i]) &&
+               !/^(#{1,6}\s|```|~~~|>\s?|\|.*\|.*\|)/.test(lines[i]) &&
+               !/^(\s*)([-*+]|\d+[.)]) /.test(lines[i]) &&
+               !/^(\*[\s*]*\*[\s*]*\*|---+|___+)\s*$/.test(lines[i]) &&
+               !/^<(div|section|details|pre|table|hr|br|!--)[\s>\/]/i.test(lines[i])) {
+            paraLines.push(lines[i]);
+            i++;
+        }
+        if (paraLines.length) {
+            // Check for setext heading
+            if (paraLines.length >= 2 && /^=+\s*$/.test(paraLines[paraLines.length-1])) {
+                tokens.push({type: 'heading', level: 1, text: paraLines.slice(0, -1).join(' ')});
+            } else if (paraLines.length >= 2 && /^-+\s*$/.test(paraLines[paraLines.length-1])) {
+                tokens.push({type: 'heading', level: 2, text: paraLines.slice(0, -1).join(' ')});
+            } else {
+                tokens.push({type: 'paragraph', text: paraLines.join('\n')});
+            }
+        }
+    }
+
+    return tokens;
+}
+
+function parseList(lines, start) {
+    var firstMatch = lines[start].match(/^(\s*)([-*+]|\d+[.)]) /);
+    var baseIndent = firstMatch[1].length;
+    var ordered = /\d/.test(firstMatch[2]);
+    var items = [];
+    var i = start;
+
+    while (i < lines.length) {
+        var line = lines[i];
+        var match = line.match(/^(\s*)([-*+]|\d+[.)]) (.*)/);
+
+        if (match && match[1].length === baseIndent) {
+            items.push({lines: [match[3]]});
+            i++;
+        } else if (items.length > 0 && /^\s*$/.test(line)) {
+            // Blank line - could be loose list or end of list
+            if (i + 1 < lines.length) {
+                var nextLine = lines[i+1];
+                var nextMatch = nextLine.match(/^(\s*)([-*+]|\d+[.)]) /);
+                if (nextMatch && nextMatch[1].length === baseIndent) {
+                    items[items.length-1].lines.push('');
+                    i++;
+                    continue;
+                }
+                if (/^\s+/.test(nextLine) && nextLine.trim().length > 0) {
+                    items[items.length-1].lines.push('');
+                    i++;
+                    continue;
+                }
+            }
+            break;
+        } else if (items.length > 0 && line.match(/^\s+/) && line.trim().length > 0) {
+            // Continuation / sub-content
+            items[items.length-1].lines.push(line.replace(new RegExp('^' + ' '.repeat(baseIndent + 2)), ''));
+            i++;
+        } else {
+            break;
+        }
+    }
+
+    var renderedItems = items.map(function(item) {
+        var text = item.lines.join('\n');
+        // Check for task list
+        var taskMatch = text.match(/^\[([ xX])\]\s*([\s\S]*)/);
+        if (taskMatch) {
+            var checked = taskMatch[1] !== ' ';
+            var innerContent = taskMatch[2];
+            // Check if sub-content has a list
+            var subLines = innerContent.split('\n');
+            if (subLines.length > 1) {
+                var subTokens = parseBlocks(subLines, 0);
+                return {task: true, checked: checked, html: renderTokens(subTokens)};
+            }
+            return {task: true, checked: checked, html: inlineFormat(innerContent)};
+        }
+        // Check if item content has multiple lines that form sub-blocks
+        var subLines2 = text.split('\n');
+        if (subLines2.length > 1) {
+            var subTokens2 = parseBlocks(subLines2, 0);
+            return {task: false, html: renderTokens(subTokens2)};
+        }
+        return {task: false, html: inlineFormat(text)};
+    });
+
+    var token = {type: 'list', ordered: ordered, items: renderedItems};
+    return {token: token, end: i};
+}
+
+// ===================== Token Renderer =====================
+
+function renderTokens(tokens) {
+    var out = '';
+    for (var t = 0; t < tokens.length; t++) {
+        var tok = tokens[t];
+        switch (tok.type) {
+            case 'heading':
+                var id = tok.text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+                out += '<h' + tok.level + ' id="' + escAttr(id) + '">' + inlineFormat(tok.text) + '</h' + tok.level + '>\n';
+                break;
+            case 'paragraph':
+                out += '<p>' + inlineFormat(tok.text) + '</p>\n';
+                break;
+            case 'code':
+                var langCls = tok.lang ? ' class="language-' + escHtml(tok.lang) + '"' : '';
+                out += '<pre><code' + langCls + '>' + escHtml(tok.text) + '</code></pre>\n';
+                break;
+            case 'hr':
+                out += '<hr>\n';
+                break;
+            case 'blockquote':
+                out += '<blockquote>' + renderTokens(tok.children) + '</blockquote>\n';
+                break;
+            case 'list':
+                var tag = tok.ordered ? 'ol' : 'ul';
+                out += '<' + tag + '>\n';
+                for (var li = 0; li < tok.items.length; li++) {
+                    var item = tok.items[li];
+                    if (item.task) {
+                        var chk = item.checked ? ' checked' : '';
+                        out += '<li class="task-item"><input type="checkbox"' + chk + ' disabled> ' + item.html + '</li>\n';
+                    } else {
+                        out += '<li>' + item.html + '</li>\n';
+                    }
+                }
+                out += '</' + tag + '>\n';
+                break;
+            case 'table':
+                out += '<table><thead><tr>';
+                for (var h = 0; h < tok.headers.length; h++) {
+                    var align = tok.aligns[h] ? ' style="text-align:' + tok.aligns[h] + '"' : '';
+                    out += '<th' + align + '>' + inlineFormat(tok.headers[h]) + '</th>';
+                }
+                out += '</tr></thead><tbody>';
+                for (var r = 0; r < tok.rows.length; r++) {
+                    out += '<tr>';
+                    for (var c = 0; c < tok.rows[r].length; c++) {
+                        var align2 = tok.aligns[c] ? ' style="text-align:' + tok.aligns[c] + '"' : '';
+                        out += '<td' + align2 + '>' + inlineFormat(tok.rows[r][c]) + '</td>';
+                    }
+                    out += '</tr>';
+                }
+                out += '</tbody></table>\n';
+                break;
+            case 'html':
+                out += tok.text + '\n';
+                break;
+        }
+    }
+    return out;
+}
+
+// ===================== Inline Formatter =====================
+
+function inlineFormat(text) {
+    var result = '';
+    var i = 0;
+    var len = text.length;
+
+    while (i < len) {
+        var ch = text[i];
+
+        // Escape: backslash
+        if (ch === '\\' && i + 1 < len && /[\\`*_{}[\]()#+\-.!~|>]/.test(text[i+1])) {
+            result += escHtml(text[i+1]);
+            i += 2;
+            continue;
+        }
+
+        // Inline code
+        if (ch === '`') {
+            var codeEnd = text.indexOf('`', i + 1);
+            if (codeEnd !== -1) {
+                result += '<code>' + escHtml(text.substring(i + 1, codeEnd)) + '</code>';
+                i = codeEnd + 1;
+                continue;
+            }
+        }
+
+        // Image: ![alt](url)
+        if (ch === '!' && text[i+1] === '[') {
+            var altEnd = findClosingBracket(text, i + 1);
+            if (altEnd !== -1 && text[altEnd + 1] === '(') {
+                var urlEnd = text.indexOf(')', altEnd + 2);
+                if (urlEnd !== -1) {
+                    var alt = escAttr(text.substring(i + 2, altEnd));
+                    var urlPart = text.substring(altEnd + 2, urlEnd);
+                    var titleMatch = urlPart.match(/^(.+?)\s+"(.*)"$/);
+                    if (titleMatch) {
+                        result += '<img src="' + escAttr(titleMatch[1].trim()) + '" alt="' + alt + '" title="' + escAttr(titleMatch[2]) + '">';
+                    } else {
+                        result += '<img src="' + escAttr(urlPart.trim()) + '" alt="' + alt + '">';
+                    }
+                    i = urlEnd + 1;
+                    continue;
+                }
+            }
+        }
+
+        // Link: [text](url)
+        if (ch === '[') {
+            var tEnd = findClosingBracket(text, i);
+            if (tEnd !== -1 && text[tEnd + 1] === '(') {
+                var uEnd = text.indexOf(')', tEnd + 2);
+                if (uEnd !== -1) {
+                    var linkText = text.substring(i + 1, tEnd);
+                    var urlPart2 = text.substring(tEnd + 2, uEnd);
+                    var titleMatch2 = urlPart2.match(/^(.+?)\s+"(.*)"$/);
+                    if (titleMatch2) {
+                        result += '<a href="' + escAttr(titleMatch2[1].trim()) + '" title="' + escAttr(titleMatch2[2]) + '">' + inlineFormat(linkText) + '</a>';
+                    } else {
+                        result += '<a href="' + escAttr(urlPart2.trim()) + '">' + inlineFormat(linkText) + '</a>';
+                    }
+                    i = uEnd + 1;
+                    continue;
+                }
+            }
+        }
+
+        // Autolink
+        if (ch === '<') {
+            var autoEnd = text.indexOf('>', i + 1);
+            if (autoEnd !== -1) {
+                var inner = text.substring(i + 1, autoEnd);
+                if (/^https?:\/\//.test(inner)) {
+                    result += '<a href="' + escAttr(inner) + '">' + escHtml(inner) + '</a>';
+                    i = autoEnd + 1;
+                    continue;
+                }
+                if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(inner)) {
+                    result += '<a href="mailto:' + escAttr(inner) + '">' + escHtml(inner) + '</a>';
+                    i = autoEnd + 1;
+                    continue;
+                }
+            }
+        }
+
+        // Bold + Italic: ***text***
+        if (text.substr(i, 3) === '***') {
+            var end3 = text.indexOf('***', i + 3);
+            if (end3 !== -1) {
+                result += '<strong><em>' + inlineFormat(text.substring(i + 3, end3)) + '</em></strong>';
+                i = end3 + 3;
+                continue;
+            }
+        }
+
+        // Bold: **text**
+        if (text.substr(i, 2) === '**') {
+            var end2 = text.indexOf('**', i + 2);
+            if (end2 !== -1) {
+                result += '<strong>' + inlineFormat(text.substring(i + 2, end2)) + '</strong>';
+                i = end2 + 2;
+                continue;
+            }
+        }
+
+        // Bold: __text__
+        if (text.substr(i, 2) === '__') {
+            var end2u = text.indexOf('__', i + 2);
+            if (end2u !== -1) {
+                result += '<strong>' + inlineFormat(text.substring(i + 2, end2u)) + '</strong>';
+                i = end2u + 2;
+                continue;
+            }
+        }
+
+        // Strikethrough: ~~text~~
+        if (text.substr(i, 2) === '~~') {
+            var endS = text.indexOf('~~', i + 2);
+            if (endS !== -1) {
+                result += '<del>' + inlineFormat(text.substring(i + 2, endS)) + '</del>';
+                i = endS + 2;
+                continue;
+            }
+        }
+
+        // Italic: *text*
+        if (ch === '*' && text[i+1] !== '*' && text[i+1] !== ' ') {
+            var end1 = text.indexOf('*', i + 1);
+            if (end1 !== -1 && end1 > i + 1) {
+                result += '<em>' + inlineFormat(text.substring(i + 1, end1)) + '</em>';
+                i = end1 + 1;
+                continue;
+            }
+        }
+
+        // Italic: _text_
+        if (ch === '_' && text[i+1] !== '_' && text[i+1] !== ' ') {
+            var end1u = text.indexOf('_', i + 1);
+            if (end1u !== -1 && end1u > i + 1 && text[end1u-1] !== ' ') {
+                result += '<em>' + inlineFormat(text.substring(i + 1, end1u)) + '</em>';
+                i = end1u + 1;
+                continue;
+            }
+        }
+
+        // Line break: two trailing spaces + newline
+        if (ch === ' ' && text[i+1] === ' ' && text[i+2] === '\n') {
+            result += '<br>';
+            i += 3;
+            continue;
+        }
+
+        // Newline -> space
+        if (ch === '\n') {
+            result += ' ';
+            i++;
+            continue;
+        }
+
+        // Regular character
+        result += escHtml(ch);
+        i++;
+    }
+
+    return result;
+}
+
+function findClosingBracket(text, start) {
+    var depth = 0;
+    for (var i = start; i < text.length; i++) {
+        if (text[i] === '[') depth++;
+        if (text[i] === ']') { depth--; if (depth === 0) return i; }
+    }
+    return -1;
+}
+
+// ===================== Table Helpers =====================
+
+function splitTableRow(line) {
+    line = line.replace(/^\|/, '').replace(/\|$/, '');
+    return line.split('|').map(function(c) { return c.trim(); });
+}
+
+function parseAlignRow(line) {
+    return splitTableRow(line).map(function(cell) {
+        cell = cell.trim();
+        if (/^:-+:$/.test(cell)) return 'center';
+        if (/^-+:$/.test(cell)) return 'right';
+        if (/^:-+$/.test(cell)) return 'left';
+        return '';
+    });
+}
+
+// ===================== Utilities =====================
+
+function escHtml(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escAttr(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ===================== Swift Interop =====================
+
+function renderMarkdown(text) {
+    var contentEl = document.getElementById('content');
+    contentEl.innerHTML = parseMarkdown(text);
+}
+
+function getHeadings() {
+    var headings = document.querySelectorAll('#content h1, #content h2, #content h3, #content h4, #content h5, #content h6');
+    var items = [];
+    for (var i = 0; i < headings.length; i++) {
+        var h = headings[i];
+        items.push({
+            id: h.id || '',
+            text: h.textContent || '',
+            level: parseInt(h.tagName.charAt(1))
+        });
+    }
+    return JSON.stringify(items);
+}
+
+function scrollToHeading(id) {
+    var el = document.getElementById(id);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// ===================== Search =====================
+
+var searchMatches = [];
+var currentMatchIndex = -1;
+
+function searchText(query) {
+    clearSearch();
+    if (!query || query.length === 0) return '0 results';
+
+    var content = document.getElementById('content');
+    var walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+    var textNodes = [];
+    var node;
+    while (node = walker.nextNode()) {
+        // Skip nodes inside code/pre
+        var parent = node.parentNode;
+        if (parent && (parent.tagName === 'CODE' || parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE')) continue;
+        textNodes.push(node);
+    }
+
+    var queryLower = query.toLowerCase();
+    var matches = [];
+
+    for (var n = 0; n < textNodes.length; n++) {
+        var tn = textNodes[n];
+        var text = tn.textContent;
+        var lower = text.toLowerCase();
+        var idx = 0;
+        while ((idx = lower.indexOf(queryLower, idx)) !== -1) {
+            matches.push({node: tn, index: idx, length: query.length});
+            idx += query.length;
+        }
+    }
+
+    // Apply highlights in reverse to preserve indices
+    for (var m = matches.length - 1; m >= 0; m--) {
+        var match = matches[m];
+        try {
+            var range = document.createRange();
+            range.setStart(match.node, match.index);
+            range.setEnd(match.node, match.index + match.length);
+            var mark = document.createElement('mark');
+            mark.className = 'search-match';
+            range.surroundContents(mark);
+        } catch(e) { /* skip if range crosses elements */ }
+    }
+
+    searchMatches = document.querySelectorAll('.search-match');
+    if (searchMatches.length > 0) {
+        currentMatchIndex = 0;
+        searchMatches[0].classList.add('current');
+        searchMatches[0].scrollIntoView({behavior: 'smooth', block: 'center'});
+    }
+
+    return searchMatches.length === 0 ? 'No results' :
+           '1 of ' + searchMatches.length;
+}
+
+function nextMatch() {
+    if (searchMatches.length === 0) return 'No results';
+    searchMatches[currentMatchIndex].classList.remove('current');
+    currentMatchIndex = (currentMatchIndex + 1) % searchMatches.length;
+    searchMatches[currentMatchIndex].classList.add('current');
+    searchMatches[currentMatchIndex].scrollIntoView({behavior: 'smooth', block: 'center'});
+    return (currentMatchIndex + 1) + ' of ' + searchMatches.length;
+}
+
+function prevMatch() {
+    if (searchMatches.length === 0) return 'No results';
+    searchMatches[currentMatchIndex].classList.remove('current');
+    currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+    searchMatches[currentMatchIndex].classList.add('current');
+    searchMatches[currentMatchIndex].scrollIntoView({behavior: 'smooth', block: 'center'});
+    return (currentMatchIndex + 1) + ' of ' + searchMatches.length;
+}
+
+function clearSearch() {
+    var marks = document.querySelectorAll('.search-match');
+    for (var i = 0; i < marks.length; i++) {
+        var mark = marks[i];
+        var parent = mark.parentNode;
+        if (parent) {
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parent.normalize();
+        }
+    }
+    searchMatches = [];
+    currentMatchIndex = -1;
+}
+</script>
+</body>
+</html>

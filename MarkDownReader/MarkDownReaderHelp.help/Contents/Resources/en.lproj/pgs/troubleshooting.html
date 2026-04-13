@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Troubleshooting common issues with MarkDown Reader">
+    <meta name="keywords" content="troubleshoot, problem, issue, fix, error, blank, crash">
+    <title>Troubleshooting</title>
+    <link rel="stylesheet" href="../css/help.css">
+</head>
+<body>
+    <div class="breadcrumb"><a href="../MarkDownReaderHelp.html">MarkDown Reader Help</a> &rsaquo; Troubleshooting</div>
+
+    <h1>Troubleshooting</h1>
+
+    <h2>Document appears blank</h2>
+    <p>If a document opens but nothing is displayed:</p>
+    <ul>
+        <li>Verify the file is a valid text file with Markdown content.</li>
+        <li>Check that the file uses UTF-8 encoding. Other encodings may not render correctly.</li>
+        <li>Try closing and reopening the file.</li>
+    </ul>
+
+    <h2>Double-clicking .md files opens a different app</h2>
+    <p>You need to set MarkDown Reader as the default handler:</p>
+    <ol>
+        <li>Right-click any <code>.md</code> file in Finder.</li>
+        <li>Choose <strong>Get Info</strong>.</li>
+        <li>Under "Open with:", select <strong>MarkDown Reader</strong>.</li>
+        <li>Click <strong>Change All...</strong> and confirm.</li>
+    </ol>
+
+    <h2>Images not loading</h2>
+    <p>MarkDown Reader can display:</p>
+    <ul>
+        <li><strong>Remote images</strong> (URLs starting with <code>http://</code> or <code>https://</code>) &mdash; requires an internet connection.</li>
+        <li><strong>Relative images</strong> &mdash; images referenced with relative paths within the same directory as the Markdown file.</li>
+    </ul>
+    <p>If remote images aren't loading, check your internet connection. If local images aren't showing, make sure the image path in the Markdown is correct relative to the document.</p>
+
+    <h2>Export PDF is blank or incomplete</h2>
+    <p>If your exported PDF appears blank:</p>
+    <ul>
+        <li>Wait a moment for the document to fully render before exporting.</li>
+        <li>If the document contains remote images, ensure they have finished loading.</li>
+        <li>Try printing to PDF instead (using <kbd>&#8984;P</kbd> and selecting "Save as PDF").</li>
+    </ul>
+
+    <h2>Table of contents is empty</h2>
+    <p>The table of contents is generated from headings in the document. If it's empty, the document may not contain any headings (lines starting with <code>#</code>).</p>
+
+    <h2>Reporting Issues</h2>
+    <p>If you encounter a bug or have a feature request, please visit the
+    <a href="https://github.com">GitHub repository</a> and open an issue. Include:</p>
+    <ul>
+        <li>Your macOS version</li>
+        <li>A description of the problem</li>
+        <li>The Markdown content that triggered the issue (if applicable)</li>
+    </ul>
+</body>
+</html>

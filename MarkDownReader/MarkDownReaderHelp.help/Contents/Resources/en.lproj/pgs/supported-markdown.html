@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Markdown features supported by MarkDown Reader">
+    <meta name="keywords" content="markdown, syntax, features, format, code, table, list, heading, link, image">
+    <title>Supported Markdown</title>
+    <link rel="stylesheet" href="../css/help.css">
+</head>
+<body>
+    <div class="breadcrumb"><a href="../MarkDownReaderHelp.html">MarkDown Reader Help</a> &rsaquo; Supported Markdown</div>
+
+    <h1>Supported Markdown</h1>
+    <p>MarkDown Reader supports standard Markdown syntax along with common GitHub Flavored Markdown (GFM) extensions.</p>
+
+    <h2>Text Formatting</h2>
+    <table class="shortcut-table">
+        <tr><th>Syntax</th><th>Result</th></tr>
+        <tr><td><code>**bold**</code></td><td><strong>bold</strong></td></tr>
+        <tr><td><code>*italic*</code></td><td><em>italic</em></td></tr>
+        <tr><td><code>***bold italic***</code></td><td><strong><em>bold italic</em></strong></td></tr>
+        <tr><td><code>~~strikethrough~~</code></td><td><del>strikethrough</del></td></tr>
+        <tr><td><code>`inline code`</code></td><td><code>inline code</code></td></tr>
+    </table>
+
+    <h2>Headings</h2>
+    <p>Use <code>#</code> through <code>######</code> for heading levels 1 through 6. Setext-style headings (underlined with <code>===</code> or <code>---</code>) are also supported.</p>
+
+    <h2>Links &amp; Images</h2>
+    <table class="shortcut-table">
+        <tr><th>Syntax</th><th>Description</th></tr>
+        <tr><td><code>[text](url)</code></td><td>Hyperlink</td></tr>
+        <tr><td><code>[text](url "title")</code></td><td>Link with hover title</td></tr>
+        <tr><td><code>![alt](url)</code></td><td>Image</td></tr>
+        <tr><td><code>&lt;https://...&gt;</code></td><td>Autolink</td></tr>
+    </table>
+
+    <h2>Lists</h2>
+    <p>Unordered lists use <code>-</code>, <code>*</code>, or <code>+</code> as markers. Ordered lists use numbers followed by <code>.</code> or <code>)</code>. Indent with two spaces for nested lists.</p>
+    <p>Task lists use <code>- [ ]</code> for unchecked and <code>- [x]</code> for checked items.</p>
+
+    <h2>Code Blocks</h2>
+    <p>Fenced code blocks use triple backticks (<code>```</code>) or triple tildes (<code>~~~</code>). You can specify a language after the opening fence for labeling:</p>
+    <pre><code>```python
+def hello():
+    print("Hello, world!")
+```</code></pre>
+
+    <h2>Tables</h2>
+    <p>GFM-style tables with optional alignment:</p>
+    <pre><code>| Left | Center | Right |
+|:-----|:------:|------:|
+| A    |   B    |     C |</code></pre>
+
+    <h2>Other Elements</h2>
+    <ul>
+        <li><strong>Blockquotes</strong> &mdash; lines starting with <code>&gt;</code>, with nesting supported.</li>
+        <li><strong>Horizontal rules</strong> &mdash; three or more <code>---</code>, <code>***</code>, or <code>___</code>.</li>
+        <li><strong>Line breaks</strong> &mdash; end a line with two spaces for a hard line break.</li>
+        <li><strong>Escape characters</strong> &mdash; use <code>\</code> before special characters to display them literally.</li>
+    </ul>
+</body>
+</html>
