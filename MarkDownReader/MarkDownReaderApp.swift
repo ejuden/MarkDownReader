@@ -7,6 +7,7 @@ struct MarkDownReaderApp: App {
         DocumentGroup(viewing: MarkdownDocument.self) { config in
             ContentView(document: config.document, fileURL: config.fileURL)
         }
+        .defaultSize(width: 1200, height: 900)
         .commands {
             CommandGroup(after: .saveItem) {
                 Button("Export as PDF...") {
